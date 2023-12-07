@@ -1,11 +1,6 @@
 const fs = require("node:fs");
 
 const firstWordSize = "Game ".length;
-const maxCubes = {
-    blue: 14,
-    green: 13,
-    red: 12,
-};
 
 fs.readFile("input.txt", "utf8", (err, data) => {
     if (err) return console.error(err);
@@ -13,10 +8,7 @@ fs.readFile("input.txt", "utf8", (err, data) => {
 });
 
 function readData(list) {
-    let result = list
-        .map(getInfo)
-        .filter((item) => possibleGames(Object.values(item)[0]))
-        .reduce(reducer, 0);
+    let result = list.map(getInfo).map(getMinimumSet).reduce(calcPower, 0);
     console.log(result);
 }
 
@@ -36,24 +28,23 @@ function getGame(game) {
     return cubesSet;
 }
 
-function possibleGames(game) {
-    let isPossible = true;
-    for (let i = 0; i < game.length && isPossible; i++) {
-        isPossible = checkCubeSet(game[i]);
+function getMinimumSet(game) {
+    let minimum = {
+        blue: 1,
+        green: 1,
+        red: 1,
+    };
+    let cubeSets = Object.values(game)[0];
+    for (let i = 0; i < cubeSets.length; i++) {
+        let current = cubeSets[i];
+        Object.keys(current).forEach((key) => {
+            minimum[key] = Math.max(minimum[key], current[key]);
+        });
     }
-    return isPossible;
+    return minimum;
 }
 
-function checkCubeSet(cubeSet) {
-    let colors = Object.keys(cubeSet);
-    let isValid = true;
-    for (let i = 0; i < colors.length && isValid; i++) {
-        isValid = cubeSet[colors[i]] <= maxCubes[colors[i]];
-    }
-    return isValid;
-}
-
-function reducer(partial, current) {
-    let key = Object.keys(current)[0];
-    return partial + Number(key);
+function calcPower(partial, current) {
+    let power = Object.values(current).reduce((p, c) => p * c);
+    return partial + power;
 }
